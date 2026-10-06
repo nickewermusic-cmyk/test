@@ -18,6 +18,13 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 "Helv
 .drop:hover, .drop:focus-visible, .drop.over { border-color: var(--ink); background: #fbfaf8; outline: none; }
 .drop strong { font-size: 16px; } .drop span { color: var(--muted); font-size: 13px; }
 
+.g2row { margin-top: 12px; }
+.g2paste { min-height: 46px; max-height: 46px; overflow: hidden; border: 1.5px dashed #9fd3cf; border-radius: var(--radius); background: #f2faf9; padding: 12px 16px; font-size: 13.5px; color: transparent; caret-color: #3fa9a3; cursor: text; }
+.g2paste:empty::before { content: attr(data-ph); color: #3a8f8a; }
+.g2paste:focus { outline: none; border-color: #3fa9a3; background: #e8f6f5; }
+.g2msg { margin: 6px 2px 0; font-size: 12.5px; min-height: 1em; }
+.g2msg.ok { color: var(--ok); } .g2msg.err { color: var(--err); }
+
 .files { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .files li { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px 6px 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
 .files li .fn { max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }

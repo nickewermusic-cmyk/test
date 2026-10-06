@@ -1,5 +1,5 @@
 import { readSpreadsheet } from './readers.js';
-import { detectSource, parseSource, OTA_ORDER, OTA_LABEL } from './sources.js';
+import { detectSource, parseSource, OTA_ORDER, OTA_LABEL, g2RowsFromPaste } from './sources.js';
 import { compare } from './compare.js';
 import { buildPrint } from './render.js';
 
@@ -15,10 +15,39 @@ drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
 input.addEventListener('change', () => { addFiles(input.files); input.value = ''; });
 $('#print').addEventListener('click', () => window.print());
 
+// ---- G2: pegar la tabla copiada de la extranet ----
+const g2box = $('#g2paste');
+g2box.addEventListener('paste', e => {
+  e.preventDefault();
+  const cd = e.clipboardData;
+  const rows = g2RowsFromPaste(cd.getData('text/html'), cd.getData('text/plain'));
+  const n = rows.length - 1;
+  const msg = $('#g2msg');
+  if (n < 1) { msg.textContent = 'No encontré reservas de G2 en lo pegado. Seleccioná la tabla entera (desde "G2 Booking ID" hasta la última fila) y copiala de nuevo.'; msg.className = 'g2msg err'; return; }
+  state.files = state.files.filter(f => !f.pasted);
+  state.files.push({ name: `G2 \u00b7 pegado (${n} reserva${n === 1 ? '' : 's'})`, rows, source: 'g2', auto: true, pasted: true });
+  msg.textContent = `${n} reserva${n === 1 ? '' : 's'} de G2 cargada${n === 1 ? '' : 's'}.`; msg.className = 'g2msg ok';
+  run();
+});
+
+function rtfToText(rtf) {
+  return rtf.replace(/\{\\\*[^{}]*\}/g, '').replace(/\\par[d]?\b ?/g, '\n').replace(/\\tab\b ?/g, '\t').replace(/\\cell\b ?/g, '\t').replace(/\\row\b ?/g, '\n')
+    .replace(/\\'([0-9a-f]{2})/gi, (m, h) => String.fromCharCode(parseInt(h, 16))).replace(/\\[a-z]+-?\d* ?/gi, '').replace(/[{}]/g, '');
+}
+
 async function addFiles(fileList) {
   const list = [...fileList]; // copia: el FileList se vacía al resetear el input
   for (const file of list) {
     try {
+      if (/\.(txt|text|rtf)$/i.test(file.name)) { // tabla de G2 copiada y guardada en un documento de notas
+        let text = await file.text();
+        if (/^\s*\{\\rtf/.test(text)) text = rtfToText(text);
+        const rows = g2RowsFromPaste(null, text);
+        state.files = state.files.filter(f => f.name !== file.name);
+        if (rows.length < 2) state.files.push({ name: file.name, rows: null, source: null, error: 'sin reservas de G2' });
+        else state.files.push({ name: file.name, rows, source: 'g2', auto: true });
+        continue;
+      }
       const rows = await readSpreadsheet(file.name, await file.arrayBuffer());
       const src = detectSource(rows, file.name);
       state.files = state.files.filter(f => f.name !== file.name);
@@ -37,7 +66,7 @@ function renderFiles() {
     const li = document.createElement('li');
     if (f.error) {
       li.className = 'unk';
-      li.innerHTML = `<b style="color:var(--err)">No se pudo leer</b><span class="fn" title="${f.name}">${f.name}</span><button aria-label="Quitar">×</button>`;
+      li.innerHTML = `<b style="color:var(--err)">No se pudo leer${f.error === 'sin reservas de G2' ? ' (no encontré reservas de G2)' : ''}</b><span class="fn" title="${f.name}">${f.name}</span><button aria-label="Quitar">×</button>`;
     } else {
       if (!f.auto) li.className = 'unk';
       const opts = OTA_ORDER.map(id => `<option value="${id}" ${id === f.source ? 'selected' : ''}>${OTA_LABEL[id]}</option>`).join('');

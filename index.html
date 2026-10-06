@@ -21,11 +21,16 @@
   </header>
 
   <section class="drop" id="drop" tabindex="0">
-    <input type="file" id="file" multiple accept=".xls,.xlsx,.csv,.html,.htm" hidden>
+    <input type="file" id="file" multiple accept=".xls,.xlsx,.csv,.html,.htm,.txt,.rtf" hidden>
     <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
     <strong>Arrastrá aquí todos los archivos del día</strong>
-    <span>o <u>elegilos</u> · Listado de Reservas del PMS + exports de Ctrip, G2, Hotelbeds, Expedia, Hostelworld, Booking y Agoda</span>
+    <span>o <u>elegilos</u> · Listado de Reservas del PMS + exports de Ctrip, Hotelbeds, Expedia, Hostelworld, Booking y Agoda · G2 como .txt</span>
   </section>
+
+  <div class="g2row">
+    <div class="g2paste" id="g2paste" tabindex="0" contenteditable="true" role="textbox" aria-label="Pegar tabla de G2" data-ph="G2: hacé clic aquí y pegá la tabla copiada de la extranet (Ctrl+V)"></div>
+    <p class="g2msg" id="g2msg" aria-live="polite"></p>
+  </div>
 
   <ul class="files" id="files"></ul>
 

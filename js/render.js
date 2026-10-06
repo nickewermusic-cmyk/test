@@ -107,12 +107,20 @@ function tplCtrip(recs, date) {
 }
 
 function tplG2(recs, date) {
-  const top = () => `<div class="g2-bar"><b>G2</b> Extranet</div>
-    <div class="g2-head"><h1>Reservations</h1><span class="g2-f">Arrival: ${f.dmy(date)} – ${f.dmy(date)}</span></div>`;
-  const thead = `<thead><tr><th>Reference</th><th>Guest name</th><th>Arrival</th><th>Departure</th><th>Room</th><th>Units</th><th>Booking date</th><th>Status</th></tr></thead>`;
-  const rows = recs.map(r => `<tr><td>${esc(r.id)}</td><td><b>${esc(r.name)}</b></td><td>${f.dmy(r.arrival)}</td><td>${f.dmy(r.departure)}</td>
-    <td>${esc(r.room)}</td><td>${r.units || ''}</td><td>${f.dmy(r.booked)}</td><td class="${r.status === 'cancelled' ? 'g2-can' : 'g2-ok'}">${esc(r.statusText || (r.status === 'cancelled' ? 'Cancelled' : 'Confirmed'))}</td></tr>`);
-  return { orient: 'land', cls: 'g2', top, thead, rows, wrapStart: () => '<div class="g2-card">', wrapEnd: () => '</div>', bottom: () => '' };
+  const g2d = iso => { const x = D(iso); return x.ok ? `${p2(x.d)} ${ES[x.m - 1].slice(0, 3)} ${x.y}` : ''; };
+  const top = () => '';
+  const thead = `<thead><tr><th>G2 Booking ID</th><th>Created</th><th>Lead Name</th><th class="g2-sorted">Check-in <span class="g2-tri">&#9650;</span></th><th>Check-out</th><th>Status</th><th>Passengers</th></tr></thead>`;
+  const rows = recs.map((r, i) => `<tr class="${i % 2 ? 'g2-alt' : ''}">
+    <td><span class="g2-id">${esc(r.id)}</span></td><td>${g2d(r.booked)}</td><td>${esc(r.name)}</td>
+    <td>${g2d(r.arrival)}</td><td>${g2d(r.departure)}</td>
+    <td class="${r.status === 'cancelled' ? 'g2-can' : 'g2-ok'}">${esc(r.statusText || (r.status === 'cancelled' ? 'Cancelled' : 'Confirmed'))}</td>
+    <td>${esc(r.passengers || (r.units ? r.units + ' Adult' + (r.units > 1 ? 's' : '') : ''))}</td></tr>`);
+  return {
+    orient: 'land', cls: 'g2', top, thead, rows,
+    wrapStart: () => '<div class="g2-wrap">',
+    wrapEnd: last => `${last ? '<div class="g2-pag"><span>&lt; Previous</span><span>Next &gt;</span></div>' : ''}</div>`,
+    bottom: () => ''
+  };
 }
 
 function tplHotelbeds(recs, date) {

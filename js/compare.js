@@ -66,7 +66,7 @@ export function compare(sources) {
         if (rec.arrival && p.arrival && rec.arrival !== p.arrival) add('error', ota, rec, `Fecha de entrada distinta: OTA ${fmt(rec.arrival)} · PMS ${fmt(p.arrival)}.`);
         if (rec.departure && p.departure && rec.departure !== p.departure) add('error', ota, rec, `Fecha de salida distinta: OTA ${fmt(rec.departure)} · PMS ${fmt(p.departure)}.`);
         // nombre
-        const ot = new Set(tokens(rec.name));
+        const ot = new Set(tokens(rec.cleanName || rec.name));
         const pt = new Set(rows.flatMap(r => tokens(r.titular)));
         if (ot.size && pt.size && ![...ot].some(t => pt.has(t))) add('warn', ota, rec, `Nombre distinto: OTA "${rec.name}" · PMS "${rows.map(r => r.titular.replace(/\s*,\s*/, ' ').replace(/\s+$/, '')).filter((v, i, a) => a.indexOf(v) === i).join(' / ')}".`);
         // producto
@@ -88,6 +88,10 @@ export function compare(sources) {
           const pmsUnits = rows.length;
           if (isDorm && pmsUnits !== rec.units) add('warn', ota, rec, `Cantidad de camas distinta: OTA ${rec.units} · PMS ${pmsUnits}.`);
           if (!isDorm && pmsUnits !== rec.units) add('warn', ota, rec, `Cantidad de habitaciones distinta: OTA ${rec.units} · PMS ${pmsUnits}.`);
+        }
+        if (ota === 'g2' && rec.persons) {
+          const pax = rows.reduce((a, r) => a + (r.pax || 0), 0);
+          if (pax && pax !== rec.persons) add('warn', ota, rec, `Personas distintas: G2 ${rec.persons} (${rec.passengers}) \u00b7 PMS ${pax}.`);
         }
         if (ota === 'booking' && rec.persons && !rows.every(r => ['MIX', 'FEM'].includes(roomKeyFromPMS(r.tipo).kind))) {
           const pax = rows.reduce((a, r) => a + (r.pax || 0), 0);

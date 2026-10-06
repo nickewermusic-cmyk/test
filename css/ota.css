@@ -65,16 +65,19 @@
 .ct-pag span { min-width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid #cdd1d9; border-radius: 2px; }
 .ct-pag .on { border: 0; color: #3264ff; } .ct-pag .dis { color: #c4c8d0; background: #f3f4f6; }
 
-/* ---------- G2 (genérico hasta tener captura) ---------- */
-.ota-g2 .sheet { font-family: Arial, sans-serif; background: #f5f6f8; }
-.g2-bar { background: #1f2d3d; color: #fff; padding: 9px 14px; font-size: 13px; margin: -9mm -10mm 12px; } .g2-bar b { color: #5ec2f7; }
-.g2-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.g2-head h1 { font-size: 20px; margin: 0; } .g2-f { font-size: 11px; border: 1px solid #ccd; padding: 5px 10px; background: #fff; border-radius: 3px; }
-.g2-card { background: #fff; border: 1px solid #dde1e6; border-radius: 4px; }
+/* ---------- G2 EXTRANET ---------- */
+.ota-g2 .sheet { font-family: Roboto, "Segoe UI", Arial, sans-serif; color: #212121; background: #fff; padding: 9mm 10mm 10mm; }
+.g2-wrap { width: 100%; }
 .ota-g2 table.t { font-size: 11px; }
-.ota-g2 th { background: #eef1f5; text-align: left; padding: 8px; border-bottom: 1px solid #dde1e6; }
-.ota-g2 td { padding: 8px; border-bottom: 1px solid #eceff3; }
-.g2-ok { color: #1b7f3b; font-weight: 700; } .g2-can { color: #c62828; font-weight: 700; }
+.ota-g2 th { text-align: left; font-weight: 400; color: #3fa9a3; padding: 9px 6px 8px; border-bottom: 1px solid #7ccfc9; white-space: nowrap; }
+.ota-g2 th.g2-sorted { color: #1a237e; }
+.g2-tri { font-size: 8px; vertical-align: 1px; margin-left: 3px; }
+.ota-g2 td { padding: 12px 6px; background: #e6f4f3; border-bottom: 2px solid #fff; }
+.ota-g2 tr.g2-alt td { background: #a6e0dc; }
+.g2-id { color: #1a1aa6; font-weight: 700; text-decoration: underline; }
+.g2-ok { color: #4cbb3a; font-weight: 700; }
+.g2-can { color: #e53935; font-weight: 700; }
+.g2-pag { margin-top: 6px; background: #d6f0ee; padding: 11px 16px; display: flex; justify-content: flex-end; gap: 20px; color: #a9c9c7; font-size: 11px; }
 
 /* ---------- HOTELBEDS ---------- */
 .ota-hotelbeds .sheet { font-family: Lato, "Segoe UI", Arial, sans-serif; color: #1d1d1b; background: #f7f7f7; padding: 8mm 8mm 9mm; }

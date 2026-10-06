@@ -252,6 +252,27 @@ const detectors = [
     }
   },
   {
+    id: 'g2',
+    test: rows => findHeader(rows, ['G2 Booking ID', 'Lead Name']) >= 0,
+    parse(rows) {
+      const { items } = objects(rows, findHeader(rows, ['G2 Booking ID', 'Lead Name']));
+      return items.filter(o => str(pick(o, 'G2 Booking ID'))).map(o => {
+        const st = str(pick(o, 'Status'));
+        const pax = str(pick(o, 'Passengers'));
+        const adults = +(pax.match(/(\d+)\s*adult/i) || [])[1] || 0;
+        const children = +(pax.match(/(\d+)\s*(?:child|ni)/i) || [])[1] || 0;
+        const infants = +(pax.match(/(\d+)\s*(?:infant|beb)/i) || [])[1] || 0;
+        const name = str(pick(o, 'Lead Name'));
+        return {
+          id: str(pick(o, 'G2 Booking ID')), name, cleanName: name.replace(/^(mr|mrs|ms|miss|mx|dr)\.?\s+/i, ''),
+          booked: toISO(pick(o, 'Created')), arrival: toISO(pick(o, 'Check-in')), departure: toISO(pick(o, 'Check-out')),
+          status: /cancel|anul/i.test(st) ? 'cancelled' : 'confirmed', statusText: st || 'Confirmed',
+          passengers: pax, adults, children, infants, persons: (adults + children) || null, room: '', units: null
+        };
+      });
+    }
+  },
+  {
     id: 'agoda',
     test: rows => findHeader(rows, ['BookingID', 'Customer_Name']) >= 0,
     parse(rows) {
@@ -304,7 +325,7 @@ export function detectSource(rows, fileName = '') {
   return null;
 }
 export function parseSource(id, rows) {
-  if (id === 'g2') return parseGeneric(rows);
+  if (id === 'g2' && findHeader(rows, ['G2 Booking ID', 'Lead Name']) < 0) return parseGeneric(rows);
   const d = detectors.find(x => x.id === id);
   return d ? d.parse(rows) : parseGeneric(rows);
 }
@@ -321,4 +342,33 @@ export function pmsOta(item) {
   if (/\bg2\b|g2 ?travel|gta/.test(c) || /-G2-/.test(l)) return 'g2';
   if (/mirai/.test(c) || /-HS-/.test(l)) return 'mirai';
   return 'otros';
+}
+
+// ---------- G2: tabla copiada y pegada desde la extranet ----------
+export const G2_HEADER = ['G2 Booking ID', 'Created', 'Lead Name', 'Check-in', 'Check-out', 'Status', 'Passengers'];
+const G2_DATE = '\\d{1,2}\\s+[A-Za-zé]{3,5}\\.?\\s+\\d{4}';
+export function g2RowsFromPaste(html, text) {
+  let rows = [];
+  if (html && /<t[dh][\s>]/i.test(html) && typeof DOMParser !== 'undefined') {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    rows = [...doc.querySelectorAll('tr')].map(tr => [...tr.querySelectorAll('th,td')].map(td => td.textContent.replace(/\s+/g, ' ').trim()))
+      .filter(r => r.some(c => c));
+  }
+  if (!rows.length && text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.some(l => l.includes('\t'))) rows = lines.map(l => l.split('\t').map(c => c.trim()));
+    else {
+      // texto sin tabuladores: reconstruir por patrón (código, fecha, nombre, fecha, fecha, estado, pasajeros)
+      const re = new RegExp(`([A-Z0-9]{6,14})\\s+(${G2_DATE})\\s+(.+?)\\s+(${G2_DATE})\\s+(${G2_DATE})\\s+([A-Za-z]+)\\s+(\\d+\\s+\\w+(?:,?\\s*\\d+\\s+\\w+)*)`, 'g');
+      let m; const joined = lines.join(' ');
+      while ((m = re.exec(joined))) rows.push(m.slice(1, 8));
+    }
+  }
+  rows = rows.map(r => r.filter((c, i) => !(i === r.length - 1 && c === '')));
+  // quitar filas de paginación / vacías
+  rows = rows.filter(r => !r.every(c => /^(<?\s*previous|next\s*>?|)$/i.test(c)));
+  const hasHeader = rows.length && rows[0].some(c => /booking id|lead name/i.test(c));
+  if (!hasHeader) rows.unshift(G2_HEADER.slice());
+  // solo filas con pinta de reserva (código en la 1a columna)
+  return [rows[0], ...rows.slice(1).filter(r => /^[A-Z0-9-]{5,}$/i.test(r[0] || ''))];
 }
