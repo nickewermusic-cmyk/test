@@ -15,6 +15,8 @@ export function compare(sources) {
   const issues = [];
   const add = (sev, ota, rec, msg) => issues.push({ sev, ota, id: rec ? rec.id : '', name: rec ? rec.name : '', msg });
   const date = pms ? pms.date : '';
+  const dateTo = pms ? (pms.dateTo || pms.date) : '';
+  const inRange = r => !r.arrival || (r.arrival >= date && r.arrival <= dateTo);
   const summary = {};
 
   if (!pms) issues.push({ sev: 'error', ota: 'pms', id: '', name: '', msg: 'Falta el Listado de Reservas del PMS: sin él no se puede comprobar nada.' });
@@ -40,10 +42,10 @@ export function compare(sources) {
   for (const ota of OTA_ORDER) {
     if (ota === 'pms' || !sources[ota]) continue;
     const all = sources[ota];
-    const recs = date ? all.filter(r => !r.arrival || r.arrival === date) : all;
+    const recs = date ? all.filter(inRange) : all;
     const other = all.length - recs.length;
     const s = summary[ota] = { total: recs.length, confirmed: 0, cancelled: 0, ok: 0, issues: 0, otherDates: other };
-    if (other > 0) issues.push({ sev: 'info', ota, id: '', name: '', msg: `${other} reserva(s) del archivo tienen otra fecha de llegada y no se comprobaron.` });
+    if (other > 0) issues.push({ sev: 'info', ota, id: '', name: '', msg: `${other} reserva(s) del archivo tienen una fecha de llegada fuera del rango del listado del PMS y no se comprobaron.` });
     const seen = new Map();
     for (const rec of recs) {
       rec.check = 'ok';
@@ -125,10 +127,10 @@ export function compare(sources) {
     }
     for (const ota of OTA_ORDER) {
       if (ota === 'pms' || sources[ota] || !pmsCounts[ota]) continue;
-      issues.push({ sev: 'error', ota, id: '', name: '', msg: `No subiste el archivo de ${OTA_LABEL[ota]} y en el PMS hay ${pmsCounts[ota]} reserva(s) suyas para hoy.` });
+      issues.push({ sev: 'error', ota, id: '', name: '', msg: `No subiste el archivo de ${OTA_LABEL[ota]} y en el PMS hay ${pmsCounts[ota]} reserva(s) suyas en estas fechas.` });
     }
   }
   const order = { error: 0, warn: 1, info: 2 };
   issues.sort((a, b) => order[a.sev] - order[b.sev] || OTA_ORDER.indexOf(a.ota) - OTA_ORDER.indexOf(b.ota));
-  return { date, issued: pms ? pms.issued : '', summary, issues, pmsCounts };
+  return { date, dateTo, issued: pms ? pms.issued : '', summary, issues, pmsCounts };
 }

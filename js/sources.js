@@ -130,11 +130,11 @@ const detectors = [
         reg: col('RÉG.'), bono: col('BONO'), cli: col('CLIENTE'), val: col('VAL. RESERVA'), com: col('COMISIÓN'), precio: col('PRECIO'),
         tarifa: col('TARIFA'), obs: col('OBSERVACIONES'), fuente: col('FUENTE DE NEGOCIO'), master: head.lastIndexOf('GRUPO') };
       // fecha del listado y hora de emisión
-      let date = '', issued = '';
+      let date = '', dateTo = '', issued = '';
       for (let i = 0; i < hi; i++) {
         const r = rows[i] || [];
         r.forEach(c => { const m = str(c).match(/Hora emisi[oó]n:\s*(.+)/i); if (m) issued = m[1]; });
-        if (!date && /^\d{2}\/\d{2}\/\d{2,4}$/.test(str(r[0]))) date = toISO(r[0]);
+        if (!date && /^\d{2}\/\d{2}\/\d{2,4}$/.test(str(r[0]))) { date = toISO(r[0]); if (/^\d{2}\/\d{2}\/\d{2,4}$/.test(str(r[1]))) dateTo = toISO(r[1]); }
       }
       const items = [];
       for (let i = hi + 1; i < rows.length; i++) {
@@ -150,7 +150,9 @@ const detectors = [
           master: str(r[idx.master]) || str(r[idx.grupo]), obs: str(r[idx.obs]), fuente: str(r[idx.fuente])
         });
       }
-      return { date: date || (items[0] && items[0].arrival) || '', issued, items };
+      const arr = items.map(i => i.arrival).filter(Boolean).sort();
+      const from = date || arr[0] || '', to = (dateTo && dateTo >= from ? dateTo : '') || (date ? date : arr[arr.length - 1] || '');
+      return { date: from, dateTo: to, issued, items };
     }
   },
   {

@@ -103,10 +103,12 @@ function run() {
   $('#result').hidden = false;
 
   if (res.date) {
-    const [y, m, d] = res.date.split('-');
-    const wd = new Date(Date.UTC(+y, +m - 1, +d)).toLocaleDateString('es-ES', { weekday: 'long', timeZone: 'UTC' });
+    const fmtD = iso => { const [y, m, d] = iso.split('-'); return { txt: `${d}/${m}/${y}`, wd: new Date(Date.UTC(+y, +m - 1, +d)).toLocaleDateString('es-ES', { weekday: 'long', timeZone: 'UTC' }) }; };
+    const a = fmtD(res.date), multi = res.dateTo && res.dateTo !== res.date;
     $('#day').hidden = false;
-    $('#day').innerHTML = `Llegadas del<b>${wd} ${d}/${m}/${y}</b>${res.issued ? `PMS exportado ${escH(res.issued)}` : ''}`;
+    $('#day').innerHTML = multi
+      ? `Llegadas del<b>${a.txt} al ${fmtD(res.dateTo).txt}</b>${res.issued ? `PMS exportado ${escH(res.issued)}` : ''}`
+      : `Llegadas del<b>${a.wd} ${a.txt}</b>${res.issued ? `PMS exportado ${escH(res.issued)}` : ''}`;
   }
 
   const errs = res.issues.filter(i => i.sev === 'error').length;
@@ -155,7 +157,7 @@ function run() {
   const measure = document.createElement('div');
   measure.className = 'measure';
   document.body.appendChild(measure);
-  const info = buildPrint(measure, { date: res.date, sources });
+  const info = buildPrint(measure, { date: res.date, dateTo: res.dateTo, sources });
   host.innerHTML = '';
   const W = Math.min(host.clientWidth || 1040, 1040);
   for (const page of [...measure.children]) {
@@ -173,5 +175,6 @@ function run() {
   measure.remove();
   const sheets = Math.ceil(info.total / 2);
   $('#pinfo').textContent = `${info.total} página${info.total === 1 ? '' : 's'} · ${sheets} hoja${sheets === 1 ? '' : 's'} a doble cara · orden: ${info.sections.map(s => OTA_LABEL[s.id]).join(' → ')}`;
-  document.title = `Check my Reservations ${res.date ? res.date.split('-').reverse().join('-') : ''}`;
+  const dn = iso => iso.split('-').reverse().join('-');
+  document.title = `Check my Reservations ${res.date ? dn(res.date) + (res.dateTo && res.dateTo !== res.date ? ' a ' + dn(res.dateTo) : '') : ''}`;
 }

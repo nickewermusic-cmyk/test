@@ -55,13 +55,13 @@ function tplPMS(pms) {
   const items = [...pms.items].sort((a, b) => a.loc.localeCompare(b.loc));
   const [dIss, tIss] = (pms.issued || '').split(' ');
   const issued = dIss ? `${dIss.replace(/\//g, '-').replace(/-(\d{2})$/, '-20$1')} ${(tIss || '').slice(0, 5)}` : '';
-  const dd = f.pms(pms.date);
+  const dd = f.pms(pms.date), dd2 = f.pms(pms.dateTo || pms.date);
   const top = () => `
     <div class="pms-stamp">${esc(issued)}</div>
     <div class="pms-title"><span>Panel de Reservas</span></div>
     <div class="pms-rule"></div>
     <div class="pms-filters">
-      <div class="c1"><div><b>Llegada</b><span class="bx">${dd}</span><span class="bx">${dd}</span></div><i>Tipo Cliente</i><i>Nombre Cliente</i><i>Empresa</i></div>
+      <div class="c1"><div><b>Llegada</b><span class="bx">${dd}</span><span class="bx">${dd2}</span></div><i>Tipo Cliente</i><i>Nombre Cliente</i><i>Empresa</i></div>
       <div class="c2"><i>Toma</i><i>D. Line</i><i>País</i><i>Huésped</i><i>Fuente de Negocio</i></div>
       <div class="c3"><div><i>Status</i> <span>Todos</span></div><i>Motivo</i><i>Segmento</i><i>C.R.S.</i><i>Bono</i></div>
     </div>`;
@@ -80,13 +80,13 @@ function tplPMS(pms) {
   };
 }
 
-function tplCtrip(recs, date) {
+function tplCtrip(recs, date, date2 = date) {
   const top = () => `
     <div class="ct-head"><h1>Reservations</h1><div class="ct-links"><span>${I.edit} Settings</span><span>${I.dl} Download</span></div></div>
     <div class="ct-filter">
       <span class="ct-in ph">Guest name, reservation no. (i...</span>
       <span class="ct-in">Check-in date ${I.down}</span>
-      <span class="ct-in wide">${f.en(date)} <i>→</i> ${f.en(date)} ${I.cal}</span>
+      <span class="ct-in wide">${f.en(date)} <i>→</i> ${f.en(date2)} ${I.cal}</span>
       <span class="ct-in">${I.filter} More filters (0) ${I.down}</span>
       <span class="ct-clear">Clear</span>
       <span class="ct-btn">Show</span>
@@ -106,7 +106,7 @@ function tplCtrip(recs, date) {
   };
 }
 
-function tplG2(recs, date) {
+function tplG2(recs, date, date2 = date) {
   const g2d = iso => { const x = D(iso); return x.ok ? `${p2(x.d)} ${ES[x.m - 1].slice(0, 3)} ${x.y}` : ''; };
   const top = () => '';
   const thead = `<thead><tr><th>G2 Booking ID</th><th>Created</th><th>Lead Name</th><th class="g2-sorted">Check-in <span class="g2-tri">&#9650;</span></th><th>Check-out</th><th>Status</th><th>Passengers</th></tr></thead>`;
@@ -123,15 +123,15 @@ function tplG2(recs, date) {
   };
 }
 
-function tplHotelbeds(recs, date) {
-  const us = f.us(date);
+function tplHotelbeds(recs, date, date2 = date) {
+  const us = f.us(date), us2 = f.us(date2);
   const top = () => `
     <div class="hb-top">
       <div><h1>Resultados de búsqueda</h1>
         <div class="hb-sub"><span>${recs.length} Booking services</span><a>${I.print} Print</a><a>${I.excel} Import from Excel</a><a>${I.excel} Export to Excel</a></div></div>
-      <div class="hb-fil"><span class="hb-sel date">${I.cal} ${us}</span><span class="hb-sel">registro ${I.down}</span><span class="hb-sel">estado ${I.down}</span><span class="hb-sel">Habitación ${I.down}</span><span class="hb-sel">Rates ${I.down}</span></div>
+      <div class="hb-fil"><span class="hb-sel date">${I.cal} ${us}${us2 !== us ? ' - ' + us2 : ''}</span><span class="hb-sel">registro ${I.down}</span><span class="hb-sel">estado ${I.down}</span><span class="hb-sel">Habitación ${I.down}</span><span class="hb-sel">Rates ${I.down}</span></div>
     </div>
-    <div class="hb-applied"><b>Filter applied:</b><span class="hb-chip">${us} - ${us} ${I.x}</span><span class="hb-chip">registro</span><a>Clear All</a></div>`;
+    <div class="hb-applied"><b>Filter applied:</b><span class="hb-chip">${us} - ${us2} ${I.x}</span><span class="hb-chip">registro</span><a>Clear All</a></div>`;
   const thead = `<thead><tr><th>Referenci...</th><th>Service id.</th><th>API Booking id</th><th>Nombre del cli...</th><th>Fecha de cr...</th><th>Fecha de cancel...</th><th>registro</th><th>salida</th><th>Adultos/Niños/Bebés</th><th>Habitación</th><th>estado</th><th>Referencia de c...</th><th>Código de cancelac...</th></tr></thead>`;
   const code = r => { const k = roomKeyFromOTA(r.room); return k.beds ? `BED/C${k.beds}${k.bath === 'BC' ? '-FH' : ''}` : esc(r.contract); };
   const rows = recs.map(r => `<tr>
@@ -146,24 +146,25 @@ function tplHotelbeds(recs, date) {
   };
 }
 
-function tplExpedia(recs, date) {
-  const dd = D(date);
-  const short = dd.ok ? `${dd.d}/${dd.m}/${String(dd.y).slice(2)}` : '';
-  const range = `Del ${f.dayEs(date)}, ${dd.d} de ${ES[dd.m - 1]}. de ${dd.y} al ${f.dayEs(date)}, ${dd.d} de ${ES[dd.m - 1]}. de ${dd.y}`;
+function tplExpedia(recs, date, date2 = date) {
+  const dd = D(date), de = D(date2);
+  const sh = x => x.ok ? `${x.d}/${x.m}/${String(x.y).slice(2)}` : '';
+  const short = sh(dd), short2 = sh(de);
+  const range = `Del ${f.dayEs(date)}, ${dd.d} de ${ES[dd.m - 1]}. de ${dd.y} al ${f.dayEs(date2)}, ${de.d} de ${ES[de.m - 1]}. de ${de.y}`;
   const top = () => `
     <div class="ex-head"><h1>Reservas</h1><div class="ex-icons"><a>Comentarios</a>${I.chat}${I.dl}${I.print}${I.more}</div></div>
     <div class="ex-grey">
       <div class="ex-search"><span class="ex-in">${I.search}<em>Nombre, número de confirmación, ID de reserva o número de itinerario</em></span><span class="ex-pill">Buscar</span></div>
       <div class="ex-ftitle">Filtros</div>
       <div class="ex-radios"><span class="on"><i></i>Entrada</span><span><i></i>Salida</span><span><i></i>De reserva</span><span><i></i>De cancelación</span></div>
-      <div class="ex-dates"><span class="ex-box"><small>Desde</small>${short}</span><span class="ex-box"><small>Hasta</small>${short}</span><span class="ex-pill">Aplicar</span><span class="ex-more">Más filtros ${I.filter}</span></div>
+      <div class="ex-dates"><span class="ex-box"><small>Desde</small>${short}</span><span class="ex-box"><small>Hasta</small>${short2}</span><span class="ex-pill">Aplicar</span><span class="ex-more">Más filtros ${I.filter}</span></div>
       <a class="ex-reset">Restablecer</a>
       <div class="ex-range">${range}</div>
     </div>`;
   const thead = `<thead><tr><th></th><th>Huésped</th><th>Reserva</th><th>Confirmación ${I.info}</th><th>De entrada ${I.arrowUp}</th><th>De salida</th><th>Habitación</th><th>De reserva</th><th>Importe de la<br>reserva</th></tr></thead>`;
   const rows = recs.map(r => `<tr>
     <td class="ex-ic">${I.chat}</td><td><span class="ex-name">${esc(r.name)}</span></td>
-    <td>${esc(r.id)}${r.booked && daysBetween(r.booked, date) <= 6 ? '<div><span class="ex-badge">Reciente</span></div>' : ''}</td>
+    <td>${esc(r.id)}${r.booked && daysBetween(r.booked, date2) <= 6 ? '<div><span class="ex-badge">Reciente</span></div>' : ''}</td>
     <td><span class="ex-pen">${I.pencil}</span> ${esc(r.confirmation)}</td><td>${f.exp(r.arrival)}</td><td>${f.exp(r.departure)}</td>
     <td class="ex-room">${esc(r.room)}</td><td>${f.exp(r.booked)}</td>
     <td><b>${eur(r.amount)} EUR</b><div class="ex-sub">${esc(r.payment)}</div></td></tr>`);
@@ -175,14 +176,15 @@ function tplExpedia(recs, date) {
   };
 }
 
-function tplHostelworld(recs, date) {
+function tplHostelworld(recs, date, date2 = date) {
   const top = () => `<div class="hw-tab">Bookings</div>`;
+  const multi = date2 !== date;
   const thead = `<thead><tr><th>Reference</th><th class="c">Name</th><th class="c">Arriving</th><th class="c">Nights</th><th class="c">beds</th><th class="c">Status</th><th></th></tr></thead>`;
   const rows = recs.map(r => `<tr><td>${esc(r.id)}</td><td class="c">${esc(r.name)}</td><td class="c">${f.hw(r.arrival)}</td><td class="c">${r.nights || ''}</td><td class="c">${r.units}</td>
     <td class="c">${r.status === 'cancelled' ? 'Cancelled' : esc(r.statusText || 'OK')}</td><td class="r"><span class="hw-view">View</span></td></tr>`);
   return {
     orient: 'land', cls: 'hostelworld', top, thead, rows,
-    wrapStart: first => `<div class="hw-card"><div class="hw-nav"><span>Bookings</span><span>Cancelled</span><span class="on">Arrivals</span><span>Non-refundable</span><span>Advanced Search</span></div>${first ? '<h2>Arriving Today</h2>' : ''}`,
+    wrapStart: first => `<div class="hw-card"><div class="hw-nav"><span>Bookings</span><span>Cancelled</span><span class="on">Arrivals</span><span>Non-refundable</span><span>Advanced Search</span></div>${first ? (multi ? `<h2>Arrivals ${f.hw(date)} – ${f.hw(date2)}</h2>` : '<h2>Arriving Today</h2>') : ''}`,
     wrapEnd: () => '</div>', bottom: () => ''
   };
 }
@@ -196,14 +198,14 @@ const bkRoomEs = s => {
   if (/^Twin Room$/i.test(s)) return 'Habitación Twin';
   return s;
 };
-function tplBooking(recs, date, pms) {
+function tplBooking(recs, date, date2 = date) {
   const genius = r => (r.pms || []).some(p => /genius/i.test(p.obs));
   const top = () => `
     <div class="bk-head"><h1>Reservas</h1><div class="bk-acts"><span>${I.print} Imprimir lista de reservas</span></div></div>
     <div class="bk-fil">
       <label><small>Fecha de</small><span class="bk-in sel">Check-in ${I.down}</span></label>
       <label><small>Del</small><span class="bk-in d">${f.bkLong(date)}</span></label>
-      <label><small>Al</small><span class="bk-in d">${f.bkLong(date)}</span></label>
+      <label><small>Al</small><span class="bk-in d">${f.bkLong(date2)}</span></label>
       <span class="bk-btn o">Más filtros ${I.down}</span><span class="bk-btn s">Mostrar</span>
       <span class="bk-btn o card">${I.card} Gestiona tus tarjetas de crédito virtuales</span>
     </div>`;
@@ -221,12 +223,12 @@ function tplBooking(recs, date, pms) {
   return { orient: 'port', cls: 'booking', top, thead, rows, wrapStart: () => '', wrapEnd: () => '', bottom: () => '' };
 }
 
-function tplAgoda(recs, date) {
+function tplAgoda(recs, date, date2 = date) {
   const top = () => `
     <div class="ag-head"><h1>Reservations</h1><span class="ag-exp">${I.dl} Export CSV</span></div>
     <div class="ag-panel">
       <div class="ag-row"><span class="ag-field big"><small>Booking ID / Guest name</small>${I.search}<em>Booking ID / Guest name</em></span>
-      <span class="ag-field"><small>Check-in dates</small>${I.cal} ${f.en(date)} - ${f.en(date)}<i>${I.x}</i></span><span class="ag-btn">Search</span></div>
+      <span class="ag-field"><small>Check-in dates</small>${I.cal} ${f.en(date)} - ${f.en(date2)}<i>${I.x}</i></span><span class="ag-btn">Search</span></div>
       <div class="ag-chips"><span>Filters:</span><span class="ag-chip on">2 statuses ${I.x}</span><span class="ag-chip">All rooms ${I.down}</span><span class="ag-chip">All rate plans ${I.down}</span><span class="ag-chip">All Targeted promotions ${I.down}</span><span class="ag-chip">All payment models ${I.down}</span></div>
     </div>`;
   const thead = `<thead><tr><th>Booking ID</th><th>Guest name</th><th>Check-in ${I.sort}</th><th>Check-out ${I.sort}</th><th>Room &amp; occupancy</th><th>Payment model</th><th>Quick actions</th></tr></thead>`;
@@ -293,16 +295,16 @@ function paginate(t, host, label) {
 export function buildPrint(host, data) {
   host.innerHTML = '';
   const sections = [];
-  const date = data.date;
+  const date = data.date, date2 = data.dateTo || data.date;
   if (data.sources.pms) sections.push(['pms', tplPMS(data.sources.pms)]);
-  const recs = id => (data.sources[id] || []).filter(r => !date || !r.arrival || r.arrival === date);
-  if (data.sources.ctrip) sections.push(['ctrip', tplCtrip(recs('ctrip'), date)]);
-  if (data.sources.g2) sections.push(['g2', tplG2(recs('g2'), date)]);
-  if (data.sources.hotelbeds) sections.push(['hotelbeds', tplHotelbeds(recs('hotelbeds'), date)]);
-  if (data.sources.expedia) sections.push(['expedia', tplExpedia(recs('expedia'), date)]);
-  if (data.sources.hostelworld) sections.push(['hostelworld', tplHostelworld(recs('hostelworld'), date)]);
-  if (data.sources.booking) sections.push(['booking', tplBooking(recs('booking'), date)]);
-  if (data.sources.agoda) sections.push(['agoda', tplAgoda(recs('agoda'), date)]);
+  const recs = id => (data.sources[id] || []).filter(r => !date || !r.arrival || (r.arrival >= date && r.arrival <= date2));
+  if (data.sources.ctrip) sections.push(['ctrip', tplCtrip(recs('ctrip'), date, date2)]);
+  if (data.sources.g2) sections.push(['g2', tplG2(recs('g2'), date, date2)]);
+  if (data.sources.hotelbeds) sections.push(['hotelbeds', tplHotelbeds(recs('hotelbeds'), date, date2)]);
+  if (data.sources.expedia) sections.push(['expedia', tplExpedia(recs('expedia'), date, date2)]);
+  if (data.sources.hostelworld) sections.push(['hostelworld', tplHostelworld(recs('hostelworld'), date, date2)]);
+  if (data.sources.booking) sections.push(['booking', tplBooking(recs('booking'), date, date2)]);
+  if (data.sources.agoda) sections.push(['agoda', tplAgoda(recs('agoda'), date, date2)]);
   let count = 0;
   const out = [];
   for (const [id, t] of sections) {
