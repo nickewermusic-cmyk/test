@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bienvenida huésped · TOC Barcelona</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="toc_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&family=Noto+Sans+JP:wght@400;500;700;800&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="sheet.css">
+<link rel="stylesheet" href="ui.css">
+</head>
+<body>
+
+<header class="bar no-print">
+  <div class="bar-l">
+    <img src="toc_logo.png" alt="TOC" class="bar-logo">
+    <div>
+      <div class="bar-title">Hoja de bienvenida</div>
+      <div class="bar-sub">Explica la reserva al huésped en su idioma</div>
+    </div>
+  </div>
+  <button type="button" id="reset" class="btn ghost">Nueva reserva</button>
+</header>
+
+<main class="layout">
+  <aside class="panel no-print" aria-label="Datos de la reserva">
+
+    <section class="step">
+      <h2><span class="n">1</span>Pega la reserva del PMS</h2>
+      <textarea id="paste" rows="7" placeholder="Copia la ficha de la reserva en Prestige y pégala aquí (Ctrl+V)"></textarea>
+      <p id="parseMsg" class="msg" hidden></p>
+    </section>
+
+    <section class="step" id="stepData" hidden>
+      <h2><span class="n">2</span>Revisa los datos</h2>
+
+      <label class="field"><span>Titular</span><input id="f-name" autocomplete="off"></label>
+
+      <div class="row3">
+        <label class="field"><span>Entrada</span><input id="f-arr" placeholder="dd/mm/aa" inputmode="numeric"></label>
+        <label class="field"><span>Salida</span><input id="f-dep" placeholder="dd/mm/aa" inputmode="numeric"></label>
+        <label class="field"><span>Noches</span><input id="f-nights" type="number" min="1"></label>
+      </div>
+
+      <label class="field"><span>Tipo de habitación</span>
+        <select id="f-room">
+          <option value="1d 8 MIXTA BC">1d · Mixta 8 · baño compartido</option>
+          <option value="1e 8 MIXTA">1e · Mixta 8 · baño privado</option>
+          <option value="1g 6 MIXTA BC">1g · Mixta 6 · baño compartido</option>
+          <option value="1g 6 MIXTA">1g · Mixta 6 · baño privado</option>
+          <option value="1f 8 FEM">1f · Femenina 8</option>
+          <option value="1h 6 FEM">1h · Femenina 6</option>
+          <option value="4 DB STANDARD">4 DB · Doble privada</option>
+          <option value="9g FAMILIAR 4 PAX">9g · Familiar 4 privada</option>
+        </select>
+      </label>
+
+      <label class="check"><input type="checkbox" id="f-hd"> <span>Desayuno incluido (régimen HD)</span></label>
+
+      <div class="field">
+        <span id="bedsLabel">Habitación y cama</span>
+        <div id="beds" class="beds"></div>
+        <button type="button" id="addBed" class="btn small">+ Añadir cama</button>
+      </div>
+
+      <div class="row2">
+        <label class="field"><span>Personas en total</span><input id="f-pax" type="number" min="1"></label>
+        <div class="field">
+          <span>Pagan tasa (16 años o más)</span>
+          <input id="f-adults" type="number" min="0" placeholder="¿Cuántos?" class="must">
+        </div>
+      </div>
+      <div id="adultChips" class="chips"></div>
+    </section>
+
+    <section class="step" id="stepPay" hidden>
+      <h2><span class="n">3</span>Pago</h2>
+      <label class="field"><span>Canal</span>
+        <select id="f-channel">
+          <option value="Booking.com|prepaid">Booking.com · a crédito</option>
+          <option value="Hotelbeds|prepaid">Hotelbeds · a crédito</option>
+          <option value="Trip.com|prepaid">Ctrip / Trip.com · tarjeta virtual</option>
+          <option value="Expedia|prepaid">Expedia · tarjeta virtual</option>
+          <option value="G2 Travel|prepaid">G2 · tarjeta virtual</option>
+          <option value="Hostelworld|ask">Hostelworld · cobrar a su tarjeta</option>
+          <option value="web|web">Web (Mirai) · solo tasa</option>
+          <option value="other|ask">Otro canal…</option>
+        </select>
+      </label>
+      <label class="field" id="otherWrap" hidden><span>Nombre del canal</span><input id="f-other" placeholder="Ej.: Particular"></label>
+
+      <label class="check" id="unpaidWrap"><input type="checkbox" id="f-unpaid"> <span>La agencia <b>no</b> ha pagado esta reserva (cobrar otro importe)</span></label>
+
+      <div id="taxBox" class="taxbox"></div>
+
+      <label class="field" id="amountWrap" hidden><span>Importe a cobrar en recepción (€)</span>
+        <input id="f-amount" inputmode="decimal" placeholder="Ej.: 54,40" class="must">
+        <small>Lo que marque la reserva: puede ser solo la tasa o parte de la reserva + tasas.</small>
+      </label>
+    </section>
+
+    <section class="step" id="stepLang" hidden>
+      <h2><span class="n">4</span>Idioma del huésped</h2>
+      <div id="langs" class="langs" role="radiogroup" aria-label="Idioma"></div>
+    </section>
+
+    <section class="step sticky" id="stepPrint" hidden>
+      <p id="blockMsg" class="msg warn" hidden></p>
+      <button type="button" id="print" class="btn primary">Imprimir / Guardar PDF</button>
+      <p class="hint">A4, tamaño real (100 %), con gráficos de fondo. Los datos no salen de este ordenador.</p>
+    </section>
+  </aside>
+
+  <section class="stage" aria-label="Vista previa">
+    <div id="empty" class="empty no-print">
+      <img src="toc_logo.png" alt="">
+      <p>Pega una reserva del PMS para ver aquí la hoja del huésped.</p>
+    </div>
+    <div id="sheetWrap" class="sheet-wrap"><div id="sheet" class="sheet"></div></div>
+  </section>
+</main>
+
+<script src="i18n.js"></script>
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
