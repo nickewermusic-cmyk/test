@@ -1,0 +1,101 @@
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --ink: #1a1a1a; --mute: #555; --line: #cfcfcf; --soft: #f3f3f1; --green: #6FC195; }
+body { background: #e9e9e6; font-family: 'Inter', 'Noto Sans CJK SC', 'DejaVu Sans', sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.lang-zh { font-family: 'Inter', 'Noto Sans SC', 'Noto Sans CJK SC', sans-serif; }
+.lang-ja { font-family: 'Inter', 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif; }
+.lang-ko { font-family: 'Inter', 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif; }
+.lang-ar { font-family: 'Noto Sans Arabic', 'DejaVu Sans', 'Inter', sans-serif; }
+
+.page { width: 210mm; height: 297mm; padding: 11mm 15mm 10mm; background: #fff; display: flex; flex-direction: column; overflow: hidden; page-break-after: always; margin: 0 auto 8mm; }
+@media print { body { background: #fff; } .page { margin: 0; } }
+
+.top { display: flex; align-items: flex-end; justify-content: space-between; }
+.logo { height: 15mm; }
+.top-r { text-align: end; }
+.kicker { font-size: 17pt; font-weight: 800; letter-spacing: -0.01em; }
+.city { font-size: 8.5pt; color: var(--mute); letter-spacing: .25em; text-transform: uppercase; margin-top: 1mm; }
+.accent { height: 0.9mm; background: var(--green); margin: 3.5mm 0 5mm; border-radius: 1mm; }
+
+.greet { font-size: 19pt; font-weight: 800; letter-spacing: -0.015em; }
+.intro { font-size: 10pt; line-height: 1.45; color: #333; margin: 1.5mm 0 4mm; max-width: 165mm; }
+
+.sec-title { font-size: 8pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin: 0 0 2mm; display: flex; align-items: center; gap: 3mm; }
+.sec-title::after { content: ''; flex: 1; height: 0.25mm; background: var(--line); }
+.lang-ar .sec-title, .lang-zh .sec-title, .lang-ja .sec-title, .lang-ko .sec-title { letter-spacing: .04em; font-size: 9pt; }
+
+.booking { display: grid; grid-template-columns: 1fr 78mm; gap: 7mm; margin-bottom: 4mm; }
+.facts { display: flex; flex-direction: column; }
+.fact { display: grid; grid-template-columns: 30mm 1fr; gap: 3mm; padding: 1.55mm 0; border-bottom: 0.2mm solid #e4e4e4; font-size: 9.6pt; line-height: 1.3; }
+.fact:last-child { border-bottom: 0; }
+.fact dt { color: var(--mute); }
+.fact dd { font-weight: 500; }
+
+.place { display: flex; flex-direction: column; gap: 2mm; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2mm; }
+.tiles.one { grid-template-columns: 1fr; }
+.tile { border: 0.45mm solid var(--ink); border-radius: 2.5mm; padding: 2.5mm 2mm 2mm; text-align: center; }
+.tile-ic { width: 7mm; height: 7mm; margin: 0 auto 1mm; }
+.tile-ic svg, .r-ic svg, .w-ic svg, .mini svg { width: 100%; height: 100%; display: block; }
+.tile-l { font-size: 7.6pt; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--mute); }
+.lang-ar .tile-l, .lang-zh .tile-l, .lang-ja .tile-l, .lang-ko .tile-l { letter-spacing: 0; font-size: 8.5pt; }
+.tile-v { font-size: 26pt; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }
+.tiles.one .tile { display: grid; grid-template-columns: 12mm 1fr; align-items: center; text-align: start; padding: 4mm 5mm; column-gap: 4mm; }
+.tiles.one .tile-ic { grid-row: span 2; width: 10mm; height: 10mm; margin: 0; }
+.tiles.one .tile-v { font-size: 34pt; }
+.tiles.compact .tile { padding: 1.5mm 2mm; display: grid; grid-template-columns: 6mm 1fr; align-items: center; text-align: start; column-gap: 2mm; }
+.tiles.compact .tile-ic { grid-row: span 2; width: 6mm; height: 6mm; margin: 0; }
+.tiles.compact .tile-l { font-size: 6.6pt; }
+.tiles.compact .tile-v { font-size: 17pt; }
+.place-note { display: flex; gap: 2.5mm; align-items: flex-start; font-size: 8.6pt; line-height: 1.4; color: #333; margin-top: 1mm; }
+.place-note u { text-decoration-thickness: 0.3mm; text-underline-offset: 0.6mm; font-weight: 700; color: var(--ink); }
+.mini { flex: 0 0 5.5mm; height: 5.5mm; }
+
+.pay { display: grid; grid-template-columns: 62mm 1fr; gap: 6mm; align-items: center; border: 0.45mm solid var(--ink); border-radius: 2.5mm; padding: 3.2mm 5mm; margin-bottom: 4mm; }
+.pay-l { font-size: 8.4pt; font-weight: 600; color: var(--mute); text-transform: uppercase; letter-spacing: .07em; }
+.lang-ar .pay-l, .lang-zh .pay-l, .lang-ja .pay-l, .lang-ko .pay-l { letter-spacing: 0; font-size: 9.5pt; }
+.pay-v { font-size: 30pt; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-top: 1mm; }
+.pay-lines { border-inline-start: 0.25mm solid var(--line); padding-inline-start: 5mm; font-size: 9pt; line-height: 1.45; color: #333; }
+.pay-lines strong { color: var(--ink); }
+
+.rules { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 2.6mm 3mm; margin-bottom: 3.5mm; }
+.rule { text-align: center; }
+.r-ic { width: 8.5mm; height: 8.5mm; margin: 0 auto 1.3mm; }
+.r-tx { font-size: 8pt; line-height: 1.3; }
+.r-tx b { display: block; font-weight: 700; }
+.r-tx span { display: block; font-size: 7.3pt; color: #444; margin-top: .3mm; }
+.lang-ar .r-tx { font-size: 8.4pt; } .lang-ar .r-tx span { font-size: 7.8pt; }
+
+.wifi { display: flex; align-items: center; gap: 4mm; background: var(--soft); border-radius: 2.5mm; padding: 3mm 5mm; }
+.w-ic { width: 10mm; height: 10mm; flex: none; }
+.w-l { font-size: 10pt; font-weight: 700; }
+.w-l span { display: block; font-size: 8pt; font-weight: 500; color: var(--mute); }
+.w-v { margin-inline-start: auto; font-size: 18pt; font-weight: 800; letter-spacing: .01em; }
+
+.foot { margin-top: auto; text-align: center; padding-top: 3mm; }
+.closing { font-size: 13pt; font-weight: 800; }
+.team { font-size: 9.5pt; color: var(--mute); margin-top: 1mm; }
+.small { font-size: 7.2pt; color: #777; line-height: 1.5; margin-top: 2mm; border-top: 0.2mm solid #e4e4e4; padding-top: 2mm; }
+
+.bed-rows { display: flex; flex-direction: column; gap: 2mm; }
+.bed-rows.tight { gap: 1.2mm; }
+.bed-rows.tight .tile-v { font-size: 14pt; }
+.tiles.rooms { grid-template-columns: repeat(2, 1fr); }
+.tiles.rooms .tile-v { font-size: 24pt; }
+
+/* Ajuste automático cuando un idioma ocupa más (lo activa la app) */
+.page.dense .intro { font-size: 9.4pt; margin-bottom: 3mm; }
+.page.dense .greet { font-size: 17pt; }
+.page.dense .fact { padding: 1.1mm 0; font-size: 9.2pt; }
+.page.dense .r-ic { width: 7.5mm; height: 7.5mm; margin-bottom: 1mm; }
+.page.dense .r-tx { font-size: 7.6pt; } .page.dense .r-tx span { font-size: 7pt; }
+.page.dense .pay-lines { font-size: 8.6pt; line-height: 1.38; }
+.page.dense .rules { gap: 2.2mm 3mm; }
+.page.denser .accent { margin: 2.5mm 0 3.5mm; }
+.page.denser .intro { font-size: 9pt; line-height: 1.35; }
+.page.denser .place-note { font-size: 8pt; }
+.page.denser .pay-v { font-size: 26pt; }
+.page.denser .wifi { padding: 2.2mm 5mm; }
+.page.denser .w-v { font-size: 16pt; }
+.page.denser .closing { font-size: 12pt; }
+.page.denser .r-tx { font-size: 7.3pt; line-height: 1.25; } .page.denser .r-tx span { font-size: 6.8pt; }
