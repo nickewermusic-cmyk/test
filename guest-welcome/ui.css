@@ -28,7 +28,7 @@ input.must:not(.done) { background: var(--warn-bg); border-color: #e7b45a; }
 
 .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; min-width: 0; }
 .field > span { font-size: 12px; font-weight: 600; color: var(--mute); }
-.field small { font-size: 11.5px; color: var(--mute); line-height: 1.4; }
+.field small { font-size: 12.5px; color: var(--mute); line-height: 1.4; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .row3 { display: grid; grid-template-columns: 1fr 1fr 80px; gap: 10px; }
 .check { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; margin: 2px 0 14px; cursor: pointer; line-height: 1.4; }
@@ -60,7 +60,7 @@ input.must:not(.done) { background: var(--warn-bg); border-color: #e7b45a; }
 .btn.primary { width: 100%; background: var(--ink); color: #fff; border-color: var(--ink); padding: 13px; font-size: 15px; }
 .btn.primary:disabled { background: #b9b9b3; border-color: #b9b9b3; cursor: not-allowed; }
 .sticky { position: sticky; bottom: 0; background: var(--panel); padding-bottom: 16px; }
-.hint { font-size: 11.5px; color: var(--mute); margin-top: 8px; line-height: 1.4; }
+.hint { font-size: 12.5px; color: var(--mute); margin-top: 8px; line-height: 1.4; }
 
 .msg { font-size: 12.5px; border-radius: 8px; padding: 8px 10px; margin-top: 8px; line-height: 1.4; }
 .msg.ok { background: var(--ok-bg); color: var(--brand-ink); }
