@@ -51,7 +51,11 @@ input.must:not(.done) { background: var(--warn-bg); border-color: #e7b45a; }
 
 .langs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .langs button { padding: 10px 6px; border: 1px solid #cfcfc8; background: #fff; border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer; }
-.langs button[lang="ar"] { font-family: 'Noto Sans Arabic', sans-serif; }
+.langs button { display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1.2; }
+.langs small { font-size: 12px; color: var(--mute); font-weight: 400; }
+.langs small[lang="ar"] { font-family: 'Noto Sans Arabic', sans-serif; }
+.langs button[aria-checked="true"] small { color: #d6d6d0; }
+.info { font-size: 13px; color: var(--mute); background: #f7f7f4; border-radius: 8px; padding: 8px 10px; margin: 0 0 6px; line-height: 1.4; }
 .langs button[aria-checked="true"] { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 600; }
 
 .btn { font: inherit; font-size: 14px; font-weight: 600; border-radius: 8px; padding: 9px 14px; cursor: pointer; border: 1px solid #cfcfc8; background: #fff; color: var(--ink); }

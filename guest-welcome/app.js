@@ -5,8 +5,8 @@
   const state = { beds: [], lang: 'en', parsed: null, ready: false };
 
   /* ---------- Idiomas ---------- */
-  $('langs').innerHTML = LANGS.map(([k, label]) =>
-    `<button type="button" role="radio" data-lang="${k}" lang="${k}" aria-checked="${k === state.lang}">${label}</button>`).join('');
+  $('langs').innerHTML = LANGS.map(([k, es, native]) =>
+    `<button type="button" role="radio" data-lang="${k}" aria-checked="${k === state.lang}">${es}${es !== native ? `<small lang="${k}">${native}</small>` : ''}</button>`).join('');
   $('langs').addEventListener('click', e => {
     const b = e.target.closest('button[data-lang]'); if (!b) return;
     state.lang = b.dataset.lang;
@@ -32,7 +32,7 @@
     msg.className = 'msg ' + (missing.length ? 'warn' : 'ok');
     msg.textContent = missing.length
       ? `Leída, pero falta: ${missing.join(', ')}. Complétalo abajo.`
-      : 'Reserva leída. Revisa los datos y confirma cuántos pagan tasa.';
+      : (roomInfo(p.roomCode).private ? 'Reserva leída. Revisa los datos y confirma cuántos pagan tasa.' : 'Reserva leída. Revisa los datos y elige el idioma.');
 
     $('f-name').value = titleCase(p.name);
     $('f-arr').value = p.arrival;
@@ -45,7 +45,7 @@
     const pl = splitPlace(p.place);
     state.beds = [priv ? { room: pl.room, bed: '' } : pl];
     $('f-pax').value = priv ? Math.max(1, 1 + p.companions.length) : 1;
-    $('f-adults').value = '';
+    $('f-adults').value = priv ? '' : 1;
 
     // Canal
     const all = `${p.agency} ${p.contract} ${p.raw}`;
@@ -63,7 +63,7 @@
 
     ['stepData', 'stepPay', 'stepLang', 'stepPrint'].forEach(id => $(id).hidden = false);
     drawBeds(); syncChannel(); render();
-    $('f-adults').focus({ preventScroll: true });
+    if (priv) $('f-adults').focus({ preventScroll: true });
   }
 
   function selectRoom(code) {
@@ -116,7 +116,11 @@
     if (DATE_RE.test(a) && DATE_RE.test(d)) { const n = nightsBetween(a, d); if (n > 0) $('f-nights').value = n; }
     render();
   }));
-  $('f-room').addEventListener('change', () => { drawBeds(); render(); });
+  $('f-room').addEventListener('change', () => {
+    if (roomInfo($('f-room').value).private) state.beds = state.beds.slice(0, 1).map(x => ({ room: x.room, bed: '' }));
+    $('f-adults').value = '';
+    drawBeds(); render();
+  });
   $('f-channel').addEventListener('change', () => { syncChannel(); render(); });
   $('f-unpaid').addEventListener('change', () => { syncChannel(); render(); });
 
@@ -153,6 +157,7 @@
   /* ---------- Hoja ---------- */
   function collect() {
     const c = channel();
+    const priv = roomInfo($('f-room').value).private;
     const ad = $('f-adults').value.trim();
     const amt = $('f-amount').value.trim();
     return {
@@ -162,8 +167,9 @@
       regime: $('f-hd').checked ? 'HD' : 'HH',
       roomCode: $('f-room').value,
       channel: c.name, mode: c.mode,
-      pax: parseInt($('f-pax').value, 10) || 1,
-      adults16: ad === '' ? NaN : parseInt(ad, 10),
+      pax: priv ? (parseInt($('f-pax').value, 10) || 1) : state.beds.length,
+      // En compartidas todos son mayores de edad (los menores solo van en privadas): pagan tasa todos
+      adults16: priv ? (ad === '' ? NaN : parseInt(ad, 10)) : state.beds.length,
       amountToPay: amt === '' ? NaN : num(amt),
       beds: state.beds.map(x => ({ ...x })),
     };
@@ -194,6 +200,10 @@
   function render() {
     if ($('stepData').hidden) return;
     const b = collect();
+    const priv = roomInfo(b.roomCode).private;
+    $('paxWrap').hidden = !priv;
+    $('dormPax').hidden = priv;
+    if (!priv) $('dormPax').textContent = `Compartida: ${b.beds.length} ${b.beds.length === 1 ? 'persona' : 'personas'} (una por cama). En compartidas todos pagan tasa.`;
     chips(b);
     $('f-adults').classList.toggle('done', Number.isFinite(b.adults16));
     $('f-amount').classList.toggle('done', Number.isFinite(b.amountToPay));

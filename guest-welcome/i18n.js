@@ -593,8 +593,9 @@ function ruPlural(n, one, few, many) {
   return many;
 }
 
-/* Idiomas en el selector, en este orden, con su nombre en su propio idioma */
+/* Idiomas del selector: código, nombre en español (para el recepcionista) y nombre en su idioma (para el huésped) */
 const LANGS = [
-  ['es', 'Español'], ['en', 'English'], ['fr', 'Français'], ['it', 'Italiano'], ['de', 'Deutsch'], ['pt', 'Português'],
-  ['ar', 'العربية'], ['zh', '中文'], ['ja', '日本語'], ['ko', '한국어'], ['vi', 'Tiếng Việt'], ['ru', 'Русский'],
+  ['es', 'Español', 'Español'], ['en', 'Inglés', 'English'], ['fr', 'Francés', 'Français'], ['it', 'Italiano', 'Italiano'],
+  ['de', 'Alemán', 'Deutsch'], ['pt', 'Portugués', 'Português'], ['ar', 'Árabe', 'العربية'], ['zh', 'Chino', '中文'],
+  ['ja', 'Japonés', '日本語'], ['ko', 'Coreano', '한국어'], ['vi', 'Vietnamita', 'Tiếng Việt'], ['ru', 'Ruso', 'Русский'],
 ];

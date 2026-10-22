@@ -176,43 +176,90 @@ function renderSheet(b, lang, logoSrc) {
 </section>`;
 }
 
-/* ---------- Lector del texto copiado del PMS (Prestige) ---------- */
-const PMS_LABELS = ['localizador', 'bono', 'estancia', 'régimen', 'regimen', 'fecha toma', 'contrato', 'agencia', 'total', 'total tasas', 'prepagado', 'observaciones'];
-const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
-const num = s => parseFloat(String(s).replace(/\./g, '').replace(',', '.'));
+/* ---------- Lector del texto copiado del PMS (Prestige) ----------
+   No depende de cómo vengan separadas las líneas (saltos, tabuladores, espacios,
+   todo en una línea…): busca cada etiqueta y toma lo que hay hasta la siguiente. */
+const PMS_LABELS = ['Localizador', 'Bono', 'Estancia', 'R[eé]gimen', 'Fecha toma', 'Contrato', 'Agencia', 'Total tasas', 'Total(?!\\s+tasas)', 'Prepagado', 'Observaciones'];
+const LABEL_ALT = PMS_LABELS.join('|');
+const DATE_RE = /^\d{1,2}\/\d{1,2}\/(\d{2}|\d{4})$/;
+const DATE_G = /\d{1,2}\/\d{1,2}\/(?:20\d{2}(?!\d)|\d{2})/g;   // año de 2 cifras: "24/10/262" = 24/10/26 + 2 noches
+const ROOM_G = /(?:^|[^\w])(1[d-h]\s*\d\s*(?:MIXTA|FEM)(?:\s*BC)?|4\s*DB\s*STANDARD|9g\s*FAMILIAR\s*4\s*PAX)\s*(\d{1,4}(?:\s*-\s*\d{1,3})?)?/i;
+const num = s => parseFloat(String(s).replace(/\s/g, '').replace(/\.(?=\d{3}\b)/g, '').replace(',', '.'));
+
+function cleanText(text) {
+  return String(text || '').normalize('NFC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')          // caracteres invisibles
+    .replace(/[\u00A0\u2007\u202F]/g, ' ')          // espacios no separables
+    .replace(/\r\n?|\u2028|\u2029/g, '\n');
+}
 
 function parsePMS(text) {
-  const L = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-  const out = { name: '', companions: [], arrival: '', departure: '', nights: null, regime: 'HH', roomCode: '', place: '', agency: '', contract: '', total: null, totalTax: null, prepaid: null, raw: text };
-  const isLabel = s => PMS_LABELS.includes(s.toLowerCase());
-  const next = (i) => (L[i + 1] && !isLabel(L[i + 1]) ? L[i + 1] : '');
+  // Prestige pega las etiquetas a los valores ("Localizador1061…", "RégimenHH", "Total76,31"): las separa
+  const clean = cleanText(text).replace(new RegExp(`(${LABEL_ALT})(?=[^\\s:])`, 'gi'), '$1 ');
+  const flat = clean.replace(/\s+/g, ' ').trim();
+  const out = { name: '', companions: [], arrival: '', departure: '', nights: null, regime: 'HH', roomCode: '', place: '', agency: '', contract: '', total: null, totalTax: null, prepaid: null, raw: clean };
 
-  if (L.length) out.name = L[0];
-  for (let i = 1; i < L.length; i++) {
-    const s = L[i], k = s.toLowerCase();
-    if (i === 1 && s.includes('/') && !DATE_RE.test(s) && !isLabel(s)) {
-      out.companions = s.split('/').map(x => x.trim()).filter(Boolean);
-      continue;
-    }
-    if (k === 'estancia') {
-      const d = L.slice(i + 1, i + 4);
-      if (DATE_RE.test(d[0] || '')) out.arrival = d[0];
-      if (DATE_RE.test(d[1] || '')) out.departure = d[1];
-      if (/^\d+$/.test(d[2] || '')) out.nights = +d[2];
-    }
-    else if (k === 'régimen' || k === 'regimen') out.regime = (next(i) || 'HH').toUpperCase();
-    else if (k === 'agencia') out.agency = next(i);
-    else if (k === 'contrato') out.contract = next(i);
-    else if (k === 'total') out.total = num(next(i));
-    else if (k === 'total tasas') out.totalTax = num(next(i));
-    else if (k === 'prepagado') out.prepaid = num(next(i));
-    else if (!out.roomCode && roomInfo(s).key) {
-      out.roomCode = s;
-      const p = L[i + 1] || '';
-      if (/^[\w]+(-\w+)?$/.test(p) && !isLabel(p)) out.place = p;
+  const field = label => {
+    const m = flat.match(new RegExp(`(?:^|\\s)(?:${label})\\s*:?\\s+(.*?)(?=\\s+(?:${LABEL_ALT})(?:\\s|:|$)|$)`, 'i'));
+    return m ? m[1].trim() : '';
+  };
+
+  // Titular y acompañantes: lo que hay antes de la primera etiqueta
+  const first = flat.search(new RegExp(`(?:^|\\s)(?:${LABEL_ALT})(?:\\s|:|$)`, 'i'));
+  const headFlat = first > 0 ? flat.slice(0, first).trim() : flat.split(' ').slice(0, 3).join(' ');
+  const headLines = clean.split(/\n|\t/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  if (headLines.length > 1 && headFlat.startsWith(headLines[0])) {
+    out.name = headLines[0];
+    const rest = headFlat.slice(headLines[0].length).trim();
+    if (rest.includes('/')) out.companions = rest.split('/').map(s => s.trim()).filter(Boolean);
+  } else {
+    out.name = headFlat;
+    if (headFlat.includes('/')) {             // todo en una línea: titular + "ACOMP 1/ ACOMP 2/"
+      const parts = headFlat.split('/').map(s => s.trim()).filter(Boolean);
+      out.companions = parts.slice(1);
+      out.name = parts[0];
     }
   }
-  if (!out.nights && out.arrival && out.departure) out.nights = nightsBetween(out.arrival, out.departure);
+
+  // Estancia: entrada, salida y noches
+  const est = field('Estancia');
+  let dates = (est.match(DATE_G) || []);
+  if (dates.length < 2) {                      // sin etiqueta: fechas del texto, sin la "Fecha toma"
+    const toma = (field('Fecha toma').match(DATE_G) || [])[0];
+    dates = (flat.match(DATE_G) || []).filter(d => d !== toma);
+  }
+  if (dates[0]) out.arrival = dates[0];
+  if (dates[1]) out.departure = dates[1];
+  if (out.arrival && out.departure) out.nights = nightsBetween(out.arrival, out.departure);
+  else { const n = est.replace(DATE_G, ' ').match(/\b(\d{1,3})\b/); out.nights = n ? +n[1] : null; }
+
+  const reg = field('R[eé]gimen').match(/\b(HH|HD|MP|PC|AD|SA)\b/i);
+  if (reg) out.regime = reg[1].toUpperCase();
+
+  // Tipo de habitación y habitación-cama (p. ej. "1d 8 MIXTA BC 001-4" o "4 DB STANDARD 315")
+  const rm = flat.match(ROOM_G);
+  if (rm) {
+    out.roomCode = rm[1].replace(/\s+/g, ' ').trim();
+    if (rm[2]) out.place = rm[2].replace(/\s+/g, '');
+  }
+
+  out.agency = field('Agencia');
+  out.contract = field('Contrato');
+  const money = label => { const m = field(label).match(/-?\d[\d.\s]*,\d{1,2}|-?\d+(?:\.\d{1,2})?/); return m ? num(m[0]) : null; };
+  out.total = money('Total(?!\\s+tasas)');
+  out.totalTax = money('Total tasas');
+  out.prepaid = money('Prepagado');
+
+  // Si no hay etiqueta "Agencia", busca el nombre de la OTA en todo el texto o en el localizador
+  if (!out.agency) {
+    const ota = flat.match(/booking\.com|ctrip|trip\.com|expedia|hotelbeds|hostelworld|\bG2\b|mirai/i);
+    if (ota) out.agency = ota[0];
+    else {
+      const loc = field('Localizador').match(/-(BK|CT|EX|HB|HW)-/i);
+      const map = { BK: 'Booking.com', CT: 'Ctrip', EX: 'Expedia', HB: 'Hotelbeds', HW: 'Hostelworld' };
+      if (loc) out.agency = map[loc[1].toUpperCase()];
+    }
+  }
   return out;
 }
 
@@ -228,4 +275,4 @@ function splitPlace(p) {             // "001-5" -> {room:'001', bed:'5'} ; "315"
   return m ? { room: m[1], bed: m[2] } : { room: String(p || ''), bed: '' };
 }
 
-if (typeof module !== 'undefined') module.exports = { renderSheet, ICONS, computeTax, roomInfo, agencyInfo, parsePMS, splitPlace, nightsBetween };
+if (typeof module !== 'undefined') module.exports = { renderSheet, ICONS, computeTax, roomInfo, agencyInfo, parsePMS, splitPlace, nightsBetween, cleanText };
