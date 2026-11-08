@@ -1,7 +1,7 @@
 /* ====== Páginas imprimibles ====== */
 .page { position: relative; background: #fff; overflow: hidden; color: #222; box-sizing: border-box; }
-.page.land { width: 297mm; height: 210mm; page: land; }
-.page.port { width: 210mm; height: 297mm; page: port; }
+.page.land { width: 297mm; height: 209.6mm; page: land; break-inside: avoid; }
+.page.port { width: 210mm; height: 296.6mm; page: port; break-inside: avoid; }
 .page *, .page *::before, .page *::after { box-sizing: border-box; }
 .sheet { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 9mm 10mm 10mm; overflow: hidden; }
 .fit { flex: 1 1 auto; min-height: 0; overflow: hidden; }

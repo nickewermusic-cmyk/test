@@ -116,6 +116,20 @@ const pick = (o, ...keys) => {
   return '';
 };
 
+// Ctrip: el importe puede venir en "Net Rate", "Selling Rate" u otra columna de precio según el tipo de reserva
+function ctripAmount(o) {
+  for (const k of ['Net Rate', 'Total Net Rate', 'Selling Rate', 'Total Selling Rate', 'Total Amount', 'Amount', 'Total Price', 'Price']) {
+    const v = num(pick(o, k));
+    if (!isNaN(v) && v > 0) return v;
+  }
+  for (const k of Object.keys(o)) {
+    if (k === '__row' || !/net ?rate|selling ?rate|amount|price|total|importe|precio/i.test(k)) continue;
+    const v = num(o[k]);
+    if (!isNaN(v) && v > 0) return v;
+  }
+  return NaN;
+}
+
 /* ---------- detectores + extractores ---------- */
 const detectors = [
   {
@@ -167,7 +181,7 @@ const detectors = [
           arrival: toISO(pick(o, 'Check-in Date')), departure: toISO(pick(o, 'Check-out Date')),
           booked: toISO(pick(o, 'Booking Date')), status: /cancel/i.test(st) ? 'cancelled' : 'confirmed', statusText: st,
           room: str(pick(o, 'Room Name')).replace(/\s+-\s+(PPY|PP|BAR|NR)\b.*$/i, ''), roomId: str(pick(o, 'Room ID')),
-          units: num(pick(o, 'Room(s)')) || 1, amount: num(pick(o, 'Net Rate')), currency: str(pick(o, 'Currency')) || 'EUR',
+          units: num(pick(o, 'Room(s)')) || 1, amount: ctripAmount(o), currency: str(pick(o, 'Currency')) || 'EUR',
           remarks: str(pick(o, 'Remarks')), nights: num(pick(o, 'Night(s)'))
         };
       });

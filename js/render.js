@@ -94,7 +94,7 @@ function tplCtrip(recs, date, date2 = date) {
   const thead = `<thead><tr><th>Guest(s)</th><th>Amount</th><th>Check-in ${I.arrowUp}</th><th>Check-out</th><th>Room type</th><th>Booking date</th><th>Reservation</th><th>Status</th></tr></thead>`;
   const rows = recs.map(r => `<tr>
     <td><span class="ct-name">${esc(r.name)}</span>${r.remarks ? `<div class="ct-sr">${I.doc} Special requests</div>` : ''}</td>
-    <td>${esc(r.currency)} ${dot(r.amount)}</td><td>${f.en(r.arrival)}</td><td>${f.en(r.departure)}</td>
+    <td>${isNaN(r.amount) ? '' : `${esc(r.currency)} ${dot(r.amount)}`}</td><td>${f.en(r.arrival)}</td><td>${f.en(r.departure)}</td>
     <td class="ct-room">${esc(r.room)}<div>${r.units} room(s)</div></td><td>${f.en(r.booked)}</td>
     <td>${esc(r.id)} <span class="ct-copy">${I.copy}</span></td>
     <td class="${r.status === 'cancelled' ? 'ct-can' : 'ct-ok'}">${r.status === 'cancelled' ? 'Canceled' : esc(r.statusText || 'Confirmed')}</td></tr>`);
@@ -220,7 +220,7 @@ function tplBooking(recs, date, date2 = date) {
     <td>€ ${can ? '0' : eur(r.amount)}<div class="bk-s">Transferencia<br>bancaria</div></td>
     <td>€ ${can ? '0' : eur(r.commission)}</td><td><span class="bk-link">${esc(r.id)}</span></td></tr>`;
   });
-  return { orient: 'port', cls: 'booking', top, thead, rows, wrapStart: () => '', wrapEnd: () => '', bottom: () => '' };
+  return { orient: 'land', cls: 'booking', top, thead, rows, wrapStart: () => '', wrapEnd: () => '', bottom: () => '' };
 }
 
 function tplAgoda(recs, date, date2 = date) {

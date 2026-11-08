@@ -85,6 +85,8 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 "Helv
   .app { display: none; }
   .pages { display: block; margin: 0; padding: 0; max-width: none; }
   .pv { box-shadow: none; width: auto !important; height: auto !important; }
-  .pv > .page { position: relative; transform: none !important; break-after: page; }
+  .pv { break-inside: avoid; }
+  .pv + .pv { break-before: page; }
+  .pv > .page { position: relative; transform: none !important; }
   .pv .blank::after { content: none; }
 }
