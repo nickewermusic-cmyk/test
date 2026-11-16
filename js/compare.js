@@ -45,7 +45,13 @@ export function compare(sources) {
     const recs = date ? all.filter(inRange) : all;
     const other = all.length - recs.length;
     const s = summary[ota] = { total: recs.length, confirmed: 0, cancelled: 0, ok: 0, issues: 0, otherDates: other };
-    if (other > 0) issues.push({ sev: 'info', ota, id: '', name: '', msg: `${other} reserva(s) del archivo tienen una fecha de llegada fuera del rango del listado del PMS y no se comprobaron.` });
+    if (other > 0) {
+      const outs = all.filter(r => !inRange(r)).sort((a, b) => (a.arrival || '').localeCompare(b.arrival || ''));
+      const dm = iso => iso ? iso.split('-').reverse().slice(0, 2).join('/') + '/' + iso.slice(2, 4) : '?';
+      const list = outs.slice(0, 12).map(r => `${r.id} (llega ${dm(r.arrival)}${r.status === 'cancelled' ? ', cancelada' : ''})`).join(', ') + (outs.length > 12 ? `, y ${outs.length - 12} más` : '');
+      const rango = date === dateTo ? fmt(date) : `${fmt(date)} al ${fmt(dateTo)}`;
+      issues.push({ sev: 'info', ota, id: '', name: '', msg: `Se leyeron ${all.length} reservas del archivo; ${other} tienen la llegada fuera de las fechas del listado del PMS (${rango}) y no se comprobaron: ${list}. Para revisarlas, exportá el listado de Prestige con esas fechas.` });
+    }
     const seen = new Map();
     for (const rec of recs) {
       rec.check = 'ok';
